@@ -4,6 +4,8 @@ import { Inventory } from "./Inventory";
 import { Order } from "./Order";
 import { Product } from "./Product";
 import { OrderStatus } from './OrderStatus';
+import console from 'node:console';
+import { VendingMachineHardware } from './VendingMachineHardware';
 
 (async () => {
 
@@ -27,20 +29,19 @@ import { OrderStatus } from './OrderStatus';
     inventory.addProduct(product5);
 
     // * 1. Select Product
-    inventory.getProductById("Product_1");
-    // * 2. Create Order
     const purchasedQty = 1; // * Input Quantity via hardware / user
-    const productId = "Product_1"; // * Input Product ID via hardware / user
+    const productId = product1.getProductId(); // * Input Product ID via hardware / user
     const product = inventory.getProductById(productId);
     // inventory.removeProduct(product, qty);
     const productQty = product.getProductQuantity();
     if(purchasedQty > productQty) { 
         console.log(`
-        Invetory out of stock: 
-        Available qty for ${product.getProductName()}: ${product.getProductName()}
-        `); 
-    }
-    const order = new Order("ORDER_1",[product]);
+            Invetory out of stock: 
+            Available qty for ${product.getProductName()}: ${product.getProductName()}
+            `); 
+        }
+    // * 2. Create Order
+    const order = new Order("ORDER_1",[{product: product, quantity: purchasedQty}]);
     // * 3. Insert Money
     // * 3.1 Notify User via display message: Show please insert money
     console.log(`Please insert money: ${order.getTotal()} ruppess
@@ -50,6 +51,7 @@ import { OrderStatus } from './OrderStatus';
     let insertedAmount = 0;  // * Input Money via hardware / user
     const rl = readline.createInterface({ input, output });
     while (true) {
+        if(insertedAmount == order.getTotal()) break;
         const line = await rl.question(`INSERTED AMOUNT: `);
         if (line === 'q') break;
         else insertedAmount += parseInt(line);
@@ -60,9 +62,14 @@ import { OrderStatus } from './OrderStatus';
     // * 4. Process Order
     order.setStatus(OrderStatus.COMPLETED);
 
-    // * 5. Despense Product
+    // * 5. Update Inventory
+    inventory.updateProduct({id: product.getProductId(), quantity: productQty - purchasedQty});
     
-    // * 6. Return Exchange
-    // * 7. Update Inventory
+    // * 6. Despense Product
+    VendingMachineHardware.despenseProduct({product: product, quantity: purchasedQty});
+
+    // * 7. TODO: Return Exchange
+
+    // * 8. TODO: Add products to inventory with position (row, column)
 
 })();

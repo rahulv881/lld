@@ -9,10 +9,10 @@ export class Order {
     createdAt: Date;
     updatedAt: Date;
 
-    constructor(id: string, products: Product[]) {
+    constructor(id: string, products: {product: Product, quantity: number}[]) {
         this.id = id;
-        this.products = products;
-        this.total = products.reduce((acc, product) => acc + product.price * product.quantity, 0);
+        this.products = products.map(product => product.product);
+        this.total = products.reduce((acc, {product, quantity}) => acc + product.price * quantity, 0);
         this.status = OrderStatus.PENDING;
         this.createdAt = new Date();
         this.updatedAt = new Date();
