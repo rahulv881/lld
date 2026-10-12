@@ -1,0 +1,103 @@
+<h2 class="sr-only">Class diagram for a tic tac toe low-level design, showing Game composed of Board, an abstract Player with human and bot subclasses, a pluggable move strategy, and Symbol and GameState enums.</h2>
+<div id="cd"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const themeMode = document.documentElement.dataset.mode;
+const dark = themeMode ? themeMode === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"anthropic-sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"anthropic-sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+const { svg } = await mermaid.render('cd-svg', `classDiagram
+  direction TB
+  class Game {
+    -Board board
+    -List~Player~ players
+    -int currentTurnIdx
+    -GameState state
+    -Player winner
+    +addPlayer(Player p)
+    +start()
+    +makeMove(Player p, int r, int c) bool
+    +getCurrentPlayer() Player
+    +getState() GameState
+    +getWinner() Player
+    -advanceTurn()
+  }
+  class Board {
+    -int size
+    -List~Symbol~ grid
+    -List~int~ rowCount
+    -List~int~ colCount
+    -int diagCount
+    -int antiDiagCount
+    +isValidCell(int r, int c) bool
+    +isEmpty(int r, int c) bool
+    +place(int r, int c, Symbol s)
+    +isWinningMove(int r, int c, Symbol s) bool
+    +isFull() bool
+    +render()
+  }
+  class Player {
+    <<abstract>>
+    #string name
+    #Symbol symbol
+    +getName() string
+    +getSymbol() Symbol
+    +getMove(Board b) Move
+  }
+  class HumanPlayer {
+    +getMove(Board b) Move
+  }
+  class BotPlayer {
+    -MoveStrategy strategy
+    +getMove(Board b) Move
+  }
+  class MoveStrategy {
+    <<interface>>
+    +nextMove(Board b, Symbol s) Move
+  }
+  class RandomStrategy {
+    +nextMove(Board b, Symbol s) Move
+  }
+  class MinimaxStrategy {
+    +nextMove(Board b, Symbol s) Move
+  }
+  class Move {
+    +int row
+    +int col
+  }
+  class Symbol {
+    <<enumeration>>
+    EMPTY
+    X
+    O
+  }
+  class GameState {
+    <<enumeration>>
+    NOT_STARTED
+    IN_PROGRESS
+    WIN
+    DRAW
+  }
+  Game *-- Board
+  Game o-- "2..*" Player
+  Game --> GameState
+  Board --> Symbol
+  Player <|-- HumanPlayer
+  Player <|-- BotPlayer
+  BotPlayer *-- MoveStrategy
+  MoveStrategy <|.. RandomStrategy
+  MoveStrategy <|.. MinimaxStrategy
+  Player ..> Move`);
+document.getElementById('cd').innerHTML = svg;
+</script>

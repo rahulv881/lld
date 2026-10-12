@@ -1,0 +1,19 @@
+{
+  "name": "parking_lot_system",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx main.ts",
+    "test": "tsx --test *.test.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "tsx": "^4.23.15"
+  },
+  "dependencies": {
+    "uuid4": "^2.0.3"
+  }
+}

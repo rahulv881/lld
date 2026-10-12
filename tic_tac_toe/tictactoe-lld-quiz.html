@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tic Tac Toe LLD — Abstractions &amp; Patterns</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFF1EE;
+    --card:#FAFBF9;
+    --ink:#1B2A2E;
+    --ink-soft:#5A6B6E;
+    --rule:#C6CCC8;
+    --accent:#5B4B8A;
+    --accent-wash:#EEEBF4;
+    --ok:#2E6E4E;
+    --ok-wash:#E6EFE9;
+    --no:#A6402F;
+    --no-wash:#F5E8E5;
+    --sans:"IBM Plex Sans",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font:400 16px/1.55 var(--sans);
+    padding:32px 20px 72px;
+  }
+  .wrap{max-width:660px;margin:0 auto}
+
+  /* ---------- masthead ---------- */
+  h1{
+    font-size:26px;
+    font-weight:600;
+    letter-spacing:-.015em;
+    margin:0 0 6px;
+    line-height:1.2;
+  }
+  .standfirst{
+    margin:0 0 26px;
+    color:var(--ink-soft);
+    font-size:15px;
+    max-width:52ch;
+  }
+
+  /* ---------- arrow legend ---------- */
+  .legend{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px 18px;
+    padding:18px 20px;
+    background:var(--card);
+    border:1px solid var(--rule);
+    margin-bottom:10px;
+  }
+  .legend div{display:flex;flex-direction:column;gap:3px}
+  .legend span{font-size:12.5px;color:var(--ink-soft)}
+  .legend svg{display:block}
+  .legend-note{
+    margin:0 0 30px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+
+  /* ---------- progress ---------- */
+  .ticks{display:flex;gap:4px;margin-bottom:8px}
+  .tick{height:3px;flex:1;background:var(--rule)}
+  .tick.done{background:var(--accent)}
+  .tick.miss{background:var(--no)}
+  .counter{
+    display:flex;justify-content:space-between;
+    font:500 12.5px/1 var(--mono);
+    color:var(--ink-soft);
+    margin-bottom:18px;
+  }
+
+  /* ---------- the class box ---------- */
+  .box{background:var(--card);border:1px solid var(--rule)}
+  .box-head{
+    padding:9px 18px;
+    border-bottom:1px solid var(--rule);
+    font:500 13px/1 var(--mono);
+    color:var(--accent);
+  }
+  .prompt{
+    padding:20px 18px;
+    border-bottom:1px solid var(--rule);
+    font-size:17px;
+    line-height:1.5;
+  }
+  .prompt code,.opt code,.reveal code{
+    font:500 .875em/1 var(--mono);
+    background:#E4E8E5;
+    padding:1px 4px;
+    border-radius:2px;
+    word-break:break-word;
+  }
+
+  .opts{list-style:none;margin:0;padding:0}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;
+    width:100%;text-align:left;
+    padding:14px 18px;
+    background:none;border:0;border-bottom:1px solid var(--rule);
+    font:400 15px/1.5 var(--sans);
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .opt:last-child{border-bottom:0}
+  .opt:hover:not(:disabled){background:var(--accent-wash)}
+  .opt:disabled{cursor:default}
+  .opt:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  .key{
+    flex:none;
+    font:500 12px/1.35 var(--mono);
+    color:var(--ink-soft);
+    border:1px solid var(--rule);
+    padding:1px 6px;
+    margin-top:1px;
+  }
+  .opt.chosen.right{background:var(--ok-wash)}
+  .opt.chosen.wrong{background:var(--no-wash)}
+  .opt.chosen.right .key{border-color:var(--ok);color:var(--ok)}
+  .opt.chosen.wrong .key{border-color:var(--no);color:var(--no)}
+  .opt.answer .key{border-color:var(--ok);color:var(--ok)}
+  .opt.dim{color:var(--ink-soft)}
+
+  /* ---------- hint + reveal ---------- */
+  .tools{padding:12px 18px;border-top:1px solid var(--rule)}
+  .linkish{
+    background:none;border:0;padding:0;
+    font:400 13.5px/1 var(--sans);
+    color:var(--accent);
+    text-decoration:underline;
+    text-underline-offset:3px;
+    cursor:pointer;
+  }
+  .linkish:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+  .hint{
+    margin:10px 0 0;font-size:14px;color:var(--ink-soft);
+    border-left:2px solid var(--rule);padding-left:12px;
+  }
+  .reveal{
+    border-top:1px solid var(--rule);
+    padding:18px;
+    animation:open .22s ease-out;
+  }
+  @keyframes open{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.reveal{animation:none}}
+  .verdict{font-weight:600;font-size:15px;margin:0 0 6px}
+  .verdict.right{color:var(--ok)}
+  .verdict.wrong{color:var(--no)}
+  .reveal p{margin:0;font-size:15px;line-height:1.6}
+
+  .next{
+    margin-top:16px;
+    padding:11px 20px;
+    background:var(--ink);color:var(--card);
+    border:0;
+    font:500 15px/1 var(--sans);
+    cursor:pointer;
+  }
+  .next:hover{background:var(--accent)}
+  .next:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------- score ---------- */
+  .score-num{
+    font:600 62px/1 var(--sans);
+    letter-spacing:-.03em;
+    margin:0;
+  }
+  .score-num small{font-size:26px;font-weight:400;color:var(--ink-soft)}
+  .verdict-line{margin:10px 0 24px;font-size:16px;max-width:48ch}
+  .recap{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+  .recap li{
+    display:flex;gap:12px;align-items:baseline;
+    padding:12px 0;border-bottom:1px solid var(--rule);
+    font-size:14.5px;
+  }
+  .recap .mark{flex:none;font:500 13px/1 var(--mono);width:22px}
+  .recap .mark.r{color:var(--ok)}
+  .recap .mark.w{color:var(--no)}
+  .recap .tag{font:500 13px/1.4 var(--mono);color:var(--ink-soft)}
+
+  .kbd-note{margin-top:22px;font-size:12.5px;color:var(--ink-soft)}
+  @media (max-width:560px){
+    body{padding:22px 14px 56px}
+    h1{font-size:22px}
+    .legend{grid-template-columns:repeat(2,1fr)}
+    .prompt{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tic tac toe, from first sketch to pattern-heavy design</h1>
+  <p class="standfirst">Eight questions on what changed across three revisions of the class diagram — and why several of the changes were arguably not worth making.</p>
+
+  <div class="legend" aria-label="UML relationship notation reference">
+    <div>
+      <svg width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+        <polygon points="1,7 9,2 17,7 9,12" fill="#1B2A2E"/><line x1="17" y1="7" x2="60" y2="7" stroke="#1B2A2E"/>
+      </svg><span>Composition</span>
+    </div>
+    <div>
+      <svg width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+        <polygon points="1,7 9,2 17,7 9,12" fill="#FAFBF9" stroke="#1B2A2E"/><line x1="17" y1="7" x2="60" y2="7" stroke="#1B2A2E"/>
+      </svg><span>Aggregation</span>
+    </div>
+    <div>
+      <svg width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+        <line x1="2" y1="7" x2="50" y2="7" stroke="#1B2A2E"/><polygon points="62,7 50,1 50,13" fill="#FAFBF9" stroke="#1B2A2E"/>
+      </svg><span>Inheritance</span>
+    </div>
+    <div>
+      <svg width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+        <line x1="2" y1="7" x2="50" y2="7" stroke="#1B2A2E" stroke-dasharray="4 3"/><polygon points="62,7 50,1 50,13" fill="#FAFBF9" stroke="#1B2A2E"/>
+      </svg><span>Realization</span>
+    </div>
+    <div>
+      <svg width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+        <line x1="2" y1="7" x2="58" y2="7" stroke="#1B2A2E"/><path d="M52 2 L59 7 L52 12" fill="none" stroke="#1B2A2E" stroke-linecap="round"/>
+      </svg><span>Association</span>
+    </div>
+    <div>
+      <svg width="64" height="14" viewBox="0 0 64 14" aria-hidden="true">
+        <line x1="2" y1="7" x2="58" y2="7" stroke="#1B2A2E" stroke-dasharray="4 3"/><path d="M52 2 L59 7 L52 12" fill="none" stroke="#1B2A2E" stroke-linecap="round"/>
+      </svg><span>Dependency</span>
+    </div>
+  </div>
+  <p class="legend-note">Ordered by coupling strength. The diamond sits at the owner; the triangle points at the parent.</p>
+
+  <div class="ticks" id="ticks" aria-hidden="true"></div>
+  <div class="counter"><span id="pos"></span><span id="tally"></span></div>
+
+  <main id="stage"></main>
+
+  <p class="kbd-note">Press <strong>1</strong>–<strong>4</strong> to answer, <strong>Enter</strong> to continue.</p>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    tag: "«notation»",
+    prompt: "<code>Board</code> stores <code>Symbol</code> values in its grid. Which UML notation is correct for the Board–Symbol relationship?",
+    options: [
+      "Composition — the symbols live and die with the board",
+      "Aggregation — symbols are handed in from outside",
+      "Neither — Symbol is an attribute type, not a related object",
+      "Dependency — Board only mentions Symbol in method signatures"
+    ],
+    correct: 2,
+    hint: "Ask whether two <code>Symbol::X</code> values are the <em>same</em> one, or merely <em>equal</em> ones.",
+    right: "Exactly right.",
+    wrong: "Close, but identity is the test.",
+    why: "Composition and aggregation describe ownership between objects that have identity. Two <code>Symbol::X</code> values can't be distinguished — there is no 'this X' versus 'that X' — so there is nothing to own. <code>Symbol</code> sits in the same category as <code>int size</code>. Enums and primitives normally get no box at all; they appear as the type in the attribute list."
+  },
+  {
+    tag: "«language mechanics»",
+    prompt: "In the version where <code>Player</code> was abstract with <code>HumanPlayer</code> and <code>BotPlayer</code> subclasses, why can't <code>Game</code> hold <code>std::vector&lt;Player&gt; players</code>?",
+    options: [
+      "<code>std::vector</code> requires its element type to be default-constructible",
+      "Storing subclasses by value slices them — <code>BotPlayer</code>'s strategy pointer is lost",
+      "It works, but pointer indirection would be faster",
+      "Aggregation forbids storing elements by value in C++"
+    ],
+    correct: 1,
+    hint: "What happens to the derived part of an object when it is copied into a base-typed slot?",
+    right: "That's the one.",
+    wrong: "Not the deciding reason.",
+    why: "Two problems stack here: an abstract <code>Player</code> can't be instantiated at all, and even if it were concrete, copying a <code>BotPlayer</code> into a <code>Player</code>-sized slot keeps only the base subobject. Polymorphic collections hold pointers. The last option is tempting because <code>shared_ptr</code> does signal aggregation in practice — but that is a modelling convention, not a language rule."
+  },
+  {
+    tag: "«principle»",
+    prompt: "<code>HumanPlayer</code> hardcoded <code>std::cin</code> while <code>BotPlayer</code> delegated to an injected strategy. Collapsing both into one <code>Player</code> with a <code>MoveSource</code> field means adding a network player needs no edits to <code>Player</code> or <code>Game</code>. Which principle is that?",
+    options: [
+      "Liskov Substitution",
+      "Open/Closed",
+      "Interface Segregation",
+      "Dependency Inversion"
+    ],
+    correct: 1,
+    hint: "The phrase 'extend without editing' is doing the work here.",
+    right: "Right principle.",
+    wrong: "That principle is involved, but not the one described.",
+    why: "Open for extension, closed for modification: a new <code>MoveSource</code> implementation adds behaviour with zero changes to existing classes. Dependency Inversion is genuinely also at play — <code>Player</code> depends on the abstraction rather than a concrete input — and Single Responsibility improves too, since <code>Player</code> stops doing console I/O. But the specific property described, extending without editing, is Open/Closed."
+  },
+  {
+    tag: "«lifetime»",
+    prompt: "In the final diagram, <code>history</code> (MoveCommands) hangs off <code>Game</code> with a filled diamond while <code>observers</code> uses a hollow one. What actually breaks if you swap them?",
+    options: [
+      "Nothing — the distinction is documentation, not behaviour",
+      "Commands are never freed, and a tournament-scoped ScoreTracker dies when one game ends",
+      "Undo silently stops working",
+      "Observers get notified twice per move"
+    ],
+    correct: 1,
+    hint: "Think about what runs inside <code>~Game()</code> under each reading.",
+    right: "Yes — it's a lifetime claim.",
+    wrong: "The diamond has teeth here.",
+    why: "The diamond dictates destruction. The command history is the game's private undo log, so it must die with the game — model it as aggregation and nobody frees it. A <code>ScoreTracker</code> spanning a whole tournament must outlive any single game — model it as composition and <code>~Game()</code> destroys it, leaving the tournament holding a dangling pointer. The notation maps directly onto <code>unique_ptr</code> versus <code>shared_ptr</code>."
+  },
+  {
+    tag: "«correctness»",
+    prompt: "Why does <code>MinimaxStrategy</code> depend on <code>WinCondition</code> in the final diagram?",
+    options: [
+      "To avoid duplicating the line-scanning code in two places",
+      "Because the bot must evaluate positions with the same rule the game enforces",
+      "Because <code>WinCondition</code> owns the board and minimax needs board access",
+      "So the bot can vary the win rule as the game progresses"
+    ],
+    correct: 1,
+    hint: "What happens if the game runs win-length 4 and the bot searches for three in a row?",
+    right: "Correct — it's a correctness constraint.",
+    wrong: "That's a side effect, not the reason.",
+    why: "Code reuse is a real side benefit, but correctness is the reason. Once the win rule became injectable, hardcoding three-in-a-row inside minimax means the bot plays toward a win the referee won't award. Any injected rule creates this class of bug: every component that reasons about the rule has to receive the same instance."
+  },
+  {
+    tag: "«pattern choice»",
+    prompt: "For minimax search, why prefer Command over Memento to undo moves?",
+    options: [
+      "Mementos can't be serialized for replay",
+      "Command's undo is O(1) — clear one cell — while a Memento snapshots the whole board per search node",
+      "Memento violates encapsulation by exposing internal state",
+      "Command is a behavioural pattern and search is behaviour"
+    ],
+    correct: 1,
+    hint: "Count the work per node in a tree with thousands of nodes.",
+    right: "Right — it's a cost argument.",
+    wrong: "True of Memento, but not the deciding factor.",
+    why: "Minimax makes a move, recurses, then unmakes it — thousands of times. Command stores just the cell and symbol, so undo is a single write. Memento copies the entire n×n grid at every node. The encapsulation criticism is a genuine textbook objection to Memento, but it isn't what decides this case."
+  },
+  {
+    tag: "«smell»",
+    prompt: "<code>Game</code> composes <code>Board</code>, but <code>makeMove</code> reads cells through <code>board.cellAt()</code> and runs the win scan itself. What's the flaw?",
+    options: [
+      "It should have been aggregation, not composition",
+      "Composition without delegation — the data is in Board, the logic that cares about it is in Game",
+      "<code>cellAt</code> should be private so Game can't reach it",
+      "Game shouldn't hold a Board at all — it should receive one per move"
+    ],
+    correct: 1,
+    hint: "Composition is structural. What's the behavioural half?",
+    right: "Spot on.",
+    wrong: "The structure is fine — the behaviour isn't.",
+    why: "Feature Envy: a method more interested in another class's data than its own. Composition only says <code>Game</code> holds a <code>Board</code>; delegation is what makes holding it worthwhile. Holding a collaborator you never forward requests to buys nothing — which is why 'composition over inheritance' really means 'hold a collaborator and delegate to it'."
+  },
+  {
+    tag: "«judgement»",
+    prompt: "An interviewer suggests modelling <code>GameState</code> with the State pattern — one class per state. What's the strongest reason to push back for tic tac toe?",
+    options: [
+      "The State pattern is only appropriate for concurrent systems",
+      "Four states with no per-state behaviour to encapsulate — NOT_STARTED and DRAW handle no moves at all",
+      "An enum is faster at runtime than virtual dispatch",
+      "State would conflict with the Observer notifications"
+    ],
+    correct: 1,
+    hint: "State pays off when the <em>same request</em> means different things in different states.",
+    right: "That's the judgement call.",
+    wrong: "Not quite — think about behaviour per state.",
+    why: "State earns its keep when a request behaves differently depending on the current state. Tic tac toe has one meaningful transition path and two states with no behaviour whatsoever, so you would get polymorphic dispatch you never exercise. Chess is where it starts paying — a move means something different under check, stalemate, or a pending promotion. Naming the condition under which you <em>would</em> adopt it is what makes this a judgement answer rather than a refusal."
+  }
+];
+
+const KEYS = ["A","B","C","D"];
+const stage = document.getElementById("stage");
+const ticksEl = document.getElementById("ticks");
+const posEl = document.getElementById("pos");
+const tallyEl = document.getElementById("tally");
+
+let idx = 0;
+let answered = false;
+const results = [];
+
+function drawTicks(){
+  ticksEl.innerHTML = "";
+  QUESTIONS.forEach((_, i) => {
+    const t = document.createElement("div");
+    t.className = "tick" + (results[i] === true ? " done" : results[i] === false ? " miss" : "");
+    ticksEl.appendChild(t);
+  });
+  const done = results.filter(r => r !== undefined).length;
+  const right = results.filter(r => r === true).length;
+  posEl.textContent = idx < QUESTIONS.length ? `Question ${idx + 1} / ${QUESTIONS.length}` : "Complete";
+  tallyEl.textContent = done ? `${right} correct` : "";
+}
+
+function renderQuestion(){
+  answered = false;
+  const q = QUESTIONS[idx];
+  stage.innerHTML = `
+    <section class="box">
+      <div class="box-head">${q.tag}</div>
+      <div class="prompt">${q.prompt}</div>
+      <ul class="opts">
+        ${q.options.map((o, i) => `
+          <li><button class="opt" data-i="${i}">
+            <span class="key">${KEYS[i]}</span><span>${o}</span>
+          </button></li>`).join("")}
+      </ul>
+      <div class="tools">
+        <button class="linkish" id="hintBtn">Show hint</button>
+        <p class="hint" id="hintText" hidden>${q.hint}</p>
+      </div>
+    </section>`;
+  stage.querySelectorAll(".opt").forEach(b =>
+    b.addEventListener("click", () => choose(Number(b.dataset.i))));
+  document.getElementById("hintBtn").addEventListener("click", e => {
+    document.getElementById("hintText").hidden = false;
+    e.target.remove();
+  });
+  drawTicks();
+}
+
+function choose(pick){
+  if (answered) return;
+  answered = true;
+  const q = QUESTIONS[idx];
+  const ok = pick === q.correct;
+  results[idx] = ok;
+
+  stage.querySelectorAll(".opt").forEach((b, i) => {
+    b.disabled = true;
+    if (i === pick) b.classList.add("chosen", ok ? "right" : "wrong");
+    else if (i === q.correct && !ok) b.classList.add("answer");
+    else b.classList.add("dim");
+  });
+
+  const tools = stage.querySelector(".tools");
+  if (tools) tools.remove();
+
+  const rev = document.createElement("div");
+  rev.className = "reveal";
+  rev.innerHTML = `
+    <p class="verdict ${ok ? "right" : "wrong"}">${ok ? q.right : q.wrong}</p>
+    <p>${q.why}</p>
+    <button class="next" id="nextBtn">${idx === QUESTIONS.length - 1 ? "See results" : "Next question"}</button>`;
+  stage.querySelector(".box").appendChild(rev);
+  document.getElementById("nextBtn").addEventListener("click", advance);
+  document.getElementById("nextBtn").focus();
+  drawTicks();
+}
+
+function advance(){
+  idx++;
+  if (idx < QUESTIONS.length) renderQuestion();
+  else renderScore();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderScore(){
+  const right = results.filter(r => r).length;
+  const missed = QUESTIONS.filter((_, i) => !results[i]);
+  let line;
+  if (right === 8) line = "Clean sweep. The useful next step isn't more recall — it's defending the trade-offs out loud against someone pushing back.";
+  else if (right >= 6) line = "Solid. Re-read the ones you missed and check whether the wrong option you picked was a true statement that simply wasn't the deciding reason.";
+  else if (right >= 4) line = "The notation is landing but the judgement questions aren't. Those are the ones interviews weight most heavily.";
+  else line = "Worth walking back through the three diagrams before retrying — the questions build on each other rather than standing alone.";
+
+  stage.innerHTML = `
+    <p class="score-num">${right}<small> / ${QUESTIONS.length}</small></p>
+    <p class="verdict-line">${line}</p>
+    <ul class="recap">
+      ${QUESTIONS.map((q, i) => `
+        <li>
+          <span class="mark ${results[i] ? "r" : "w"}">${results[i] ? "✓" : "✕"}</span>
+          <span><span class="tag">${q.tag}</span><br>${q.options[q.correct]}</span>
+        </li>`).join("")}
+    </ul>
+    <button class="next" id="againBtn">Start over</button>`;
+  document.getElementById("againBtn").addEventListener("click", () => {
+    idx = 0; results.length = 0; renderQuestion();
+  });
+  drawTicks();
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter"){
+    const n = document.getElementById("nextBtn") || document.getElementById("againBtn");
+    if (n){ e.preventDefault(); n.click(); }
+    return;
+  }
+  const n = Number(e.key);
+  if (n >= 1 && n <= 4 && !answered && idx < QUESTIONS.length){
+    const b = stage.querySelector(`.opt[data-i="${n - 1}"]`);
+    if (b) b.click();
+  }
+});
+
+renderQuestion();
+</script>
+</body>
+</html>

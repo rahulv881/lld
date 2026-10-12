@@ -1,0 +1,25 @@
+{
+  "name": "logging-framework",
+  "version": "1.0.0",
+  "description": "A flexible logging framework with multiple appenders and runtime configuration",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/examples/usage.js",
+    "demo": "npm run build && npm run start"
+  },
+  "keywords": [
+    "logging",
+    "logger",
+    "appender",
+    "file",
+    "database",
+    "cloud"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

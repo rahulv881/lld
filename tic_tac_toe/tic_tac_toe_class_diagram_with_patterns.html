@@ -1,0 +1,142 @@
+<h2 class="sr-only">Revised tic tac toe class diagram after applying Builder, Factory, Strategy, Observer, Command, and an injected win condition. Game now composes Board, a WinCondition, and a history of MoveCommands, aggregates Players and GameObservers, and Player delegates to a MoveSource interface.</h2>
+<div id="cd2"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const themeMode = document.documentElement.dataset.mode;
+const dark = themeMode ? themeMode === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"anthropic-sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"anthropic-sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+const { svg } = await mermaid.render('cd2-svg', `classDiagram
+  direction TB
+  class GameBuilder {
+    -int boardSize
+    -int winLength
+    -List~Player~ players
+    +boardSize(int n) GameBuilder
+    +winLength(int k) GameBuilder
+    +addPlayer(Player p) GameBuilder
+    +observedBy(GameObserver o) GameBuilder
+    +build() Game
+  }
+  class Game {
+    -Board board
+    -WinCondition winRule
+    -List~Player~ players
+    -List~GameObserver~ observers
+    -List~MoveCommand~ history
+    -int turnIdx
+    -GameState state
+    +start()
+    +makeMove(Player p, Move m) bool
+    +undoLastMove() bool
+    +getCurrentPlayer() Player
+    -notify(GameEvent e)
+    -advanceTurn()
+  }
+  class Board {
+    -int size
+    -List~Symbol~ grid
+    +isEmpty(int r, int c) bool
+    +place(int r, int c, Symbol s)
+    +clear(int r, int c)
+    +isFull() bool
+  }
+  class WinCondition {
+    <<interface>>
+    +isWin(Board b, Move m, Symbol s) bool
+  }
+  class LineWinCondition {
+    -int winLength
+    +isWin(Board b, Move m, Symbol s) bool
+  }
+  class MoveCommand {
+    -Board board
+    -Move move
+    -Symbol symbol
+    +execute()
+    +undo()
+  }
+  class GameObserver {
+    <<interface>>
+    +onEvent(GameEvent e)
+  }
+  class ConsoleRenderer {
+    +onEvent(GameEvent e)
+  }
+  class MoveLogger {
+    +onEvent(GameEvent e)
+  }
+  class PlayerFactory {
+    -Queue~Symbol~ freeMarks
+    +createHuman(string name) Player
+    +createBot(string name, MoveSource s) Player
+  }
+  class Player {
+    -string name
+    -Symbol symbol
+    -MoveSource source
+    +getMove(Board b) Move
+    +getSymbol() Symbol
+  }
+  class MoveSource {
+    <<interface>>
+    +nextMove(Board b, Symbol s) Move
+  }
+  class ConsoleInput {
+    +nextMove(Board b, Symbol s) Move
+  }
+  class RandomStrategy {
+    +nextMove(Board b, Symbol s) Move
+  }
+  class MinimaxStrategy {
+    -WinCondition winRule
+    +nextMove(Board b, Symbol s) Move
+  }
+  class Move {
+    <<value object>>
+    +int row
+    +int col
+  }
+  class Symbol {
+    <<enumeration>>
+    EMPTY
+    X
+    O
+  }
+  class GameState {
+    <<enumeration>>
+    NOT_STARTED
+    IN_PROGRESS
+    WIN
+    DRAW
+  }
+  GameBuilder ..> Game : builds
+  PlayerFactory ..> Player : creates
+  Game *-- Board
+  Game *-- WinCondition
+  Game *-- "*" MoveCommand
+  Game o-- "2..*" Player
+  Game o-- "*" GameObserver
+  WinCondition <|.. LineWinCondition
+  GameObserver <|.. ConsoleRenderer
+  GameObserver <|.. MoveLogger
+  Player *-- MoveSource
+  MoveSource <|.. ConsoleInput
+  MoveSource <|.. RandomStrategy
+  MoveSource <|.. MinimaxStrategy
+  MinimaxStrategy ..> WinCondition
+  MoveCommand ..> Board
+  MoveSource ..> Move`);
+document.getElementById('cd2').innerHTML = svg;
+</script>
