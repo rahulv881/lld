@@ -1,0 +1,21 @@
+{
+  "name": "vending_machine",
+  "version": "1.0.0",
+  "description": "Functional requirments of a vending machine 1. Add products 2. Add inventory 3. Insert money 4. Return exchange 5. Select product 6. Buy product 7. Handle out-of-stock 8. Cancel transactional 9. Notify user of events",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "prestart": "npm run build",
+    "start": "node dist/main.js",
+    "dev": "ts-node main.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
