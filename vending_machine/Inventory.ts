@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Product } from "./Product";
 
 export type ProductUpdate = Pick<Product, 'id'> & Partial<Omit<Product, 'id'>>;
@@ -5,7 +6,7 @@ export class Inventory {
     id: string;
     products: Product[];
 
-    constructor(id: string) {
+    constructor(id: string = randomUUID()) {
         this.id = id;
         this.products = [];
     }

@@ -6,40 +6,19 @@ import { Product } from "./Product";
 import { OrderStatus } from './OrderStatus';
 import console from 'node:console';
 import { VendingMachineHardware } from './VendingMachineHardware';
-
+import { ProductManager } from './ProductManager';
 (async () => {
 
     // * 0. FILL UP VENDING MACHINE INVENTORY
-    const inventory = new Inventory("1");
-    const product1 = new Product("Product_1", "Pepsi", 1);
-    product1.setProductQuantity(10);
-    const product2 = new Product("Product_2", "Coke", 1);
-    product2.setProductQuantity(10);
-    const product3 = new Product("Product_3", "Lays", 1);
-    product3.setProductQuantity(10);
-    const product4 = new Product("Product_3", "Soda", 1);
-    product4.setProductQuantity(10);
-    const product5 = new Product("Product_3", "Bisleri", 1);
-    product5.setProductQuantity(10);
-
-    inventory.addProduct(product1);
-    inventory.addProduct(product2);
-    inventory.addProduct(product3);
-    inventory.addProduct(product4);
-    inventory.addProduct(product5);
+    const vendingMachineHardware = new VendingMachineHardware();
+    vendingMachineHardware.bulkUpdateInventory();
 
     // * 1. Select Product
+    const position = 1;
+    const productManager = new ProductManager(vendingMachineHardware.getInventory());
     const purchasedQty = 1; // * Input Quantity via hardware / user
-    const productId = product1.getProductId(); // * Input Product ID via hardware / user
-    const product = inventory.getProductById(productId);
-    // inventory.removeProduct(product, qty);
-    const productQty = product.getProductQuantity();
-    if(purchasedQty > productQty) { 
-        console.log(`
-            Invetory out of stock: 
-            Available qty for ${product.getProductName()}: ${product.getProductName()}
-            `); 
-        }
+    const product = productManager.selectProduct(position, purchasedQty);
+    if(!product) return;
     // * 2. Create Order
     const order = new Order("ORDER_1",[{product: product, quantity: purchasedQty}]);
     // * 3. Insert Money
@@ -63,13 +42,21 @@ import { VendingMachineHardware } from './VendingMachineHardware';
     order.setStatus(OrderStatus.COMPLETED);
 
     // * 5. Update Inventory
-    inventory.updateProduct({id: product.getProductId(), quantity: productQty - purchasedQty});
+    const productQty = product.getProductQuantity();
+    vendingMachineHardware.getInventory().updateProduct({id: product.getProductId(), quantity: productQty - purchasedQty});
     
     // * 6. Despense Product
     VendingMachineHardware.despenseProduct({product: product, quantity: purchasedQty});
 
     // * 7. TODO: Return Exchange
+    VendingMachineHardware.returnExchange({amount: insertedAmount - order.getTotal()});
 
+    // * 9. TODO: Add Timer to insert money
+    
+    // * 10. TODO: Add Timer to select product (return to initial state on TIMEOUT)
+    
+    // * 11. TODO: Add QR Code based payment
+    
     // * 8. TODO: Add products to inventory with position (row, column)
 
 })();
