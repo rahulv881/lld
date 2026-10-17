@@ -22,7 +22,7 @@ export class Inventory {
     updateProduct(product: ProductUpdate) {
         const productToUpdate = this.products?.find(p => p.id === product.id) ?? null;
         if(!productToUpdate) throw new Error("Product not found");
-        if(product.quantity) productToUpdate.setProductQuantity(product.quantity);
+        if(product.quantity !== undefined) productToUpdate.setProductQuantity(product.quantity);
         return productToUpdate;
     }
 

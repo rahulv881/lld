@@ -21,9 +21,9 @@ export class VendingMachineHardware{
         product2.setProductQuantity(10);
         const product3 = new Product("Product_3", "Lays", 1);
         product3.setProductQuantity(10);
-        const product4 = new Product("Product_3", "Soda", 1);
+        const product4 = new Product("Product_4", "Soda", 1);
         product4.setProductQuantity(10);
-        const product5 = new Product("Product_3", "Bisleri", 1);
+        const product5 = new Product("Product_5", "Bisleri", 1);
         product5.setProductQuantity(10);
     
         this.inventory.addProduct(product1);
