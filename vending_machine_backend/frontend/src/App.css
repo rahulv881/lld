@@ -43,6 +43,22 @@
   font-family: "Share Tech Mono", ui-monospace, monospace;
 }
 
+.banner.with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.banner button {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #6d3412;
+  color: #fff8ef;
+}
+
 .cabinet {
   margin-top: 28px;
   display: grid;
@@ -123,6 +139,10 @@
 .slot.selected {
   background: rgba(84, 58, 24, 0.72);
   box-shadow: inset 0 0 0 2px #e7b15a;
+}
+
+.slot.empty {
+  background: rgba(12, 14, 16, 0.22);
 }
 
 .slot.sold-out {
@@ -334,6 +354,7 @@
 
 .tray-body {
   align-items: center;
+  flex-wrap: wrap;
   min-height: 84px;
   padding: 8px 16px 14px;
   color: #f4efe7;
@@ -402,8 +423,37 @@
   gap: 16px;
 }
 
-.stock h2 {
+.stock h2,
+.stock-actions {
   grid-column: 1 / -1;
+}
+
+.stock-actions,
+.stock-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 252, 247, 0.76);
+}
+
+.stock-panel {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.stock-panel h3,
+.stock .hint,
+.stock-actions p {
+  margin: 0;
+}
+
+.stock .hint,
+.stock-actions p {
+  color: #5c5146;
+  font-size: 14px;
 }
 
 .stock form {

@@ -4,8 +4,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react()],
   server: {
-    proxy: {
-      '/api': 'http://localhost:3040',
-    },
+    // the machine lives in the parent folder and is imported directly
+    fs: { allow: ['..'] },
   },
 })

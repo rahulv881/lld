@@ -1,60 +1,38 @@
-import { Product } from "./Product";
 import { OrderStatus } from "./OrderStatus";
+import { Product } from "./Product";
+
+export type OrderLine = {
+    product: Product;
+    quantity: number;
+};
 
 export class Order {
-    id: string;
-    products: Product[];
-    total: number;
-    status: (typeof OrderStatus)[keyof typeof OrderStatus];
-    createdAt: Date;
-    updatedAt: Date;
+    private status: OrderStatus = OrderStatus.IN_PROGRESS;
+    private readonly lines: OrderLine[];
+    private readonly total: number;
 
-    constructor(id: string, products: {product: Product, quantity: number}[]) {
-        this.id = id;
-        this.products = products.map(product => product.product);
-        this.total = products.reduce((acc, {product, quantity}) => acc + product.price * quantity, 0);
-        this.status = OrderStatus.PENDING;
-        this.createdAt = new Date();
-        this.updatedAt = new Date();
+    constructor(private readonly id: string, lines: OrderLine[]) {
+        this.lines = lines;
+        this.total = lines.reduce((sum, line) => sum + line.product.getProductPrice() * line.quantity, 0);
     }
 
-    setStatus(status: (typeof OrderStatus)[keyof typeof OrderStatus]) {
-        this.status = status;
+    getId(): string {
+        return this.id;
     }
 
-    setCreatedAt(createdAt: Date) {
-        this.createdAt = createdAt;
-    }
-
-    setUpdatedAt(updatedAt: Date) {
-        this.updatedAt = updatedAt;
-    }
-
-    getStatus(): (typeof OrderStatus)[keyof typeof OrderStatus] {
-        return this.status;
-    }
-
-    getCreatedAt(): Date {
-        return this.createdAt;
-    }
-
-    getUpdatedAt(): Date {
-        return this.updatedAt;
+    getLines(): OrderLine[] {
+        return this.lines;
     }
 
     getTotal(): number {
         return this.total;
     }
 
-    getProducts(): Product[] {
-        return this.products;
-    }
-    
-    getId(): string {
-        return this.id;
+    getStatus(): OrderStatus {
+        return this.status;
     }
 
-    getOrder(): Order {
-        return this;
+    setStatus(status: OrderStatus): void {
+        this.status = status;
     }
 }

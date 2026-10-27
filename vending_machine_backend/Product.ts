@@ -4,12 +4,11 @@ export class Product {
     price: number;
     quantity: number;
 
-    constructor(id: string, name: string, price: number, quantity?: number) {
+    constructor(id: string, name: string, price: number, quantity = 0) {
         this.id = id;
         this.name = name;
         this.price = price;
-        if(quantity) this.quantity = quantity;
-        else this.quantity = 0;
+        this.quantity = quantity;
     }
 
     getProductInfo(): string {

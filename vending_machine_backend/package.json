@@ -8,8 +8,9 @@
     "prestart": "npm run build",
     "start": "node dist/main.js",
     "dev": "ts-node main.ts",
-    "api": "ts-node server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ts-node machine.test.ts",
+    "frontend": "npm run dev -w vending_machine_frontend",
+    "build:frontend": "npm run build -w vending_machine_frontend"
   },
   "keywords": [],
   "author": "",
@@ -18,5 +19,9 @@
     "@types/node": "^26.6.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
-  }
+  },
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ]
 }
